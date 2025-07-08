@@ -37,7 +37,17 @@ func (c *Consumer) Connect(ctx context.Context, config *types.ConnectionConfig) 
 		vhost = "/"
 	}
 
-	url := fmt.Sprintf("amqp://%s:%s@%s:%d%s", config.Username, config.Password, config.Host, config.Port, vhost)
+	// 如果没有提供用户名和密码，使用RabbitMQ默认的guest/guest
+	username := config.Username
+	password := config.Password
+	if username == "" {
+		username = "guest"
+	}
+	if password == "" {
+		password = "guest"
+	}
+
+	url := fmt.Sprintf("amqp://%s:%s@%s:%d%s", username, password, config.Host, config.Port, vhost)
 
 	conn, err := amqp.Dial(url)
 	if err != nil {
@@ -110,7 +120,7 @@ func (c *Consumer) Consume(ctx context.Context, handler mq.MessageHandler) error
 		wg.Add(1)
 		go func(qName string) {
 			defer wg.Done()
-			
+
 			msgs, err := c.channel.Consume(
 				qName, "", false, false, false, false, nil,
 			)
@@ -128,7 +138,7 @@ func (c *Consumer) Consume(ctx context.Context, handler mq.MessageHandler) error
 					if !ok {
 						return
 					}
-					
+
 					msg := &types.Message{
 						ID:        utils.GenerateID(),
 						Topic:     qName,
@@ -180,4 +190,3 @@ func (c *Consumer) Close() error {
 func (c *Consumer) IsConnected() bool {
 	return c.connected && c.conn != nil && !c.conn.IsClosed()
 }
-

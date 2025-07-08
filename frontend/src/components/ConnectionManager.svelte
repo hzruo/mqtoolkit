@@ -10,7 +10,20 @@
   let showDeleteConfirm = false;
   
   let deletingConnection = null;
-  let formConnection = {};
+  let formConnection = {
+    id: '',
+    name: '',
+    type: 'kafka',
+    host: 'localhost',
+    port: 9092,
+    username: '',
+    password: '',
+    vhost: '',
+    group_id: '',
+    extra: null,
+    created: '',
+    updated: ''
+  };
 
   let creating = false;
   let updating = false;
@@ -47,13 +60,19 @@
       host: 'localhost',
       port: defaultPorts.kafka,
       username: '',
-      password: ''
+      password: '',
+      vhost: '',
+      group_id: '',
+      extra: null,
+      created: '',
+      updated: ''
     };
     showCreateForm = true;
     showEditForm = false;
   }
 
   function openEditForm(connection) {
+    // @ts-ignore
     formConnection = { ...connection };
     showEditForm = true;
     showCreateForm = false;
@@ -62,7 +81,20 @@
   function handleCancel() {
     showCreateForm = false;
     showEditForm = false;
-    formConnection = {};
+    formConnection = {
+      id: '',
+      name: '',
+      type: 'kafka',
+      host: 'localhost',
+      port: 9092,
+      username: '',
+      password: '',
+      vhost: '',
+      group_id: '',
+      extra: null,
+      created: '',
+      updated: ''
+    };
   }
 
   function onTypeChange() {
@@ -82,9 +114,11 @@
       if(isCreating) delete connData.id;
 
       if (isCreating) {
+        // @ts-ignore
         await CreateConnection(connData);
         dispatch('notification', { message: '连接创建成功', type: 'success' });
       } else {
+        // @ts-ignore
         await UpdateConnection(connData);
         dispatch('notification', { message: '连接更新成功', type: 'success' });
       }
@@ -100,6 +134,7 @@
   }
 
   function startDelete(connection) {
+    // @ts-ignore
     deletingConnection = connection;
     showDeleteConfirm = true;
   }
@@ -130,6 +165,7 @@
   }
 
   async function testConnection(connection) {
+    // @ts-ignore
     testing[connection.id] = true;
     testing = { ...testing };
     try {
@@ -318,12 +354,42 @@
 
       <div class="grid grid-cols-2 gap-4 mt-4">
         <div class="form-control">
-          <label for="conn-user-{formConnection.id}" class="label"><span class="label-text">用户名 (可选)</span></label>
-          <input id="conn-user-{formConnection.id}" type="text" bind:value={formConnection.username} class="input input-bordered" />
+          <label for="conn-user-{formConnection.id}" class="label">
+            <span class="label-text">
+              用户名
+              {#if formConnection.type === 'rabbitmq'}
+                <span class="text-info">(默认: guest)</span>
+              {:else}
+                (可选)
+              {/if}
+            </span>
+          </label>
+          <input
+            id="conn-user-{formConnection.id}"
+            type="text"
+            bind:value={formConnection.username}
+            class="input input-bordered"
+            placeholder={formConnection.type === 'rabbitmq' ? 'guest' : ''}
+          />
         </div>
         <div class="form-control">
-          <label for="conn-pass-{formConnection.id}" class="label"><span class="label-text">密码 (可选)</span></label>
-          <input id="conn-pass-{formConnection.id}" type="password" bind:value={formConnection.password} class="input input-bordered" />
+          <label for="conn-pass-{formConnection.id}" class="label">
+            <span class="label-text">
+              密码
+              {#if formConnection.type === 'rabbitmq'}
+                <span class="text-info">(默认: guest)</span>
+              {:else}
+                (可选)
+              {/if}
+            </span>
+          </label>
+          <input
+            id="conn-pass-{formConnection.id}"
+            type="password"
+            bind:value={formConnection.password}
+            class="input input-bordered"
+            placeholder={formConnection.type === 'rabbitmq' ? 'guest' : ''}
+          />
         </div>
       </div>
 

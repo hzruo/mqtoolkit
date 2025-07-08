@@ -39,12 +39,18 @@ func (p *Producer) Connect(ctx context.Context, config *types.ConnectionConfig) 
 	}
 
 	var url string
-	if config.Username != "" && config.Password != "" {
-		url = fmt.Sprintf("amqp://%s:%s@%s:%d%s",
-			config.Username, config.Password, config.Host, config.Port, vhost)
-	} else {
-		url = fmt.Sprintf("amqp://%s:%d%s", config.Host, config.Port, vhost)
+	// 如果没有提供用户名和密码，使用RabbitMQ默认的guest/guest
+	username := config.Username
+	password := config.Password
+	if username == "" {
+		username = "guest"
 	}
+	if password == "" {
+		password = "guest"
+	}
+
+	url = fmt.Sprintf("amqp://%s:%s@%s:%d%s",
+		username, password, config.Host, config.Port, vhost)
 
 	// 建立连接
 	conn, err := amqp.Dial(url)

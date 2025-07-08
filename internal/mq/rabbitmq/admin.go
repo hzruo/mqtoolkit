@@ -2,10 +2,14 @@ package rabbitmq
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
 	"mq-toolkit/internal/mq"
 	"mq-toolkit/pkg/types"
 	"mq-toolkit/pkg/utils"
+	"net/http"
+	"net/url"
 	"time"
 
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -39,12 +43,18 @@ func (a *Admin) Connect(ctx context.Context, config *types.ConnectionConfig) err
 	}
 
 	var url string
-	if config.Username != "" && config.Password != "" {
-		url = fmt.Sprintf("amqp://%s:%s@%s:%d%s",
-			config.Username, config.Password, config.Host, config.Port, vhost)
-	} else {
-		url = fmt.Sprintf("amqp://%s:%d%s", config.Host, config.Port, vhost)
+	// 如果没有提供用户名和密码，使用RabbitMQ默认的guest/guest
+	username := config.Username
+	password := config.Password
+	if username == "" {
+		username = "guest"
 	}
+	if password == "" {
+		password = "guest"
+	}
+
+	url = fmt.Sprintf("amqp://%s:%s@%s:%d%s",
+		username, password, config.Host, config.Port, vhost)
 
 	// 建立连接
 	conn, err := amqp.Dial(url)
@@ -122,16 +132,100 @@ func (a *Admin) TestConnection(ctx context.Context) *types.TestResult {
 	}
 }
 
+// QueueInfo RabbitMQ队列信息结构
+type QueueInfo struct {
+	Name       string `json:"name"`
+	VHost      string `json:"vhost"`
+	Durable    bool   `json:"durable"`
+	AutoDelete bool   `json:"auto_delete"`
+	Messages   int    `json:"messages"`
+	Consumers  int    `json:"consumers"`
+}
+
 // ListTopics 列出所有队列（RabbitMQ中的"主题"概念对应队列）
 func (a *Admin) ListTopics(ctx context.Context) ([]types.TopicInfo, error) {
 	if !a.connected || a.channel == nil {
 		return nil, utils.NewConnectionError("Not connected to RabbitMQ", nil)
 	}
 
-	// RabbitMQ的AMQP协议没有直接的API来列出所有队列
-	// 这需要使用RabbitMQ的HTTP管理API
-	// 这里返回空列表，实际实现需要使用HTTP API
-	return []types.TopicInfo{}, nil
+	// 使用RabbitMQ HTTP管理API获取队列列表
+	queues, err := a.getQueuesFromAPI()
+	if err != nil {
+		// 如果HTTP API失败，返回空列表而不是错误，这样不会阻止其他功能
+		return []types.TopicInfo{}, nil
+	}
+
+	// 转换为TopicInfo格式
+	var topics []types.TopicInfo
+	for _, queue := range queues {
+		topics = append(topics, types.TopicInfo{
+			Name:       queue.Name,
+			Partitions: 1, // RabbitMQ队列没有分区概念
+			Replicas:   1, // RabbitMQ队列没有副本概念
+		})
+	}
+
+	return topics, nil
+}
+
+// getQueuesFromAPI 通过HTTP管理API获取队列列表
+func (a *Admin) getQueuesFromAPI() ([]QueueInfo, error) {
+	// 构建管理API URL
+	vhost := a.config.VHost
+	if vhost == "" {
+		vhost = "/"
+	}
+
+	// URL编码vhost
+	encodedVhost := url.QueryEscape(vhost)
+
+	// 管理API默认端口是15672
+	managementPort := 15672
+	apiURL := fmt.Sprintf("http://%s:%d/api/queues/%s", a.config.Host, managementPort, encodedVhost)
+
+	// 创建HTTP请求
+	req, err := http.NewRequest("GET", apiURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %v", err)
+	}
+
+	// 设置认证
+	username := a.config.Username
+	password := a.config.Password
+	if username == "" {
+		username = "guest"
+	}
+	if password == "" {
+		password = "guest"
+	}
+	req.SetBasicAuth(username, password)
+
+	// 发送请求
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to call management API: %v", err)
+	}
+	defer resp.Body.Close()
+
+	// 检查响应状态
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("management API returned status %d", resp.StatusCode)
+	}
+
+	// 读取响应体
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response: %v", err)
+	}
+
+	// 解析JSON响应
+	var queues []QueueInfo
+	if err := json.Unmarshal(body, &queues); err != nil {
+		return nil, fmt.Errorf("failed to parse response: %v", err)
+	}
+
+	return queues, nil
 }
 
 // CreateTopic 创建队列
