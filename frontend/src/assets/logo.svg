@@ -1,0 +1,33 @@
+<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景 -->
+  <rect width="512" height="512" fill="#1a1a1a" rx="110"/>
+  <!-- 几何图标 -->
+  <g transform="translate(256, 150)">
+    <!-- 消息队列 -->
+    <g>
+      <!-- 队列容器背景 -->
+      <rect x="-75" y="-35" width="150" height="70" fill="rgba(228, 126, 34, 0.2)" rx="12"/>
+      <!-- 消息块 -->
+      <rect x="-58" y="-22" width="30" height="44" fill="#e67e22" rx="4"/>
+      <rect x="-18" y="-22" width="30" height="44" fill="#e67e22" rx="4" opacity="0.8"/>
+      <rect x="22" y="-22" width="30" height="44" fill="#e67e22" rx="4" opacity="0.6"/>
+      <!-- 队列边框 -->
+      <rect x="-75" y="-35" width="150" height="70" fill="none" stroke="#e67e22" 
+            stroke-width="8" rx="12"/>
+    </g>
+    <!-- 左侧箭头 (距离更远) -->
+    <path d="M -150 0 L -105 0" stroke="#3498db" stroke-width="12" stroke-linecap="round"/>
+    <path d="M -120 -18 L -105 0 L -120 18" stroke="#3498db" stroke-width="8" 
+          fill="none" stroke-linecap="round"/>
+    <!-- 右侧箭头 (距离更远) -->
+    <path d="M 105 0 L 150 0" stroke="#3498db" stroke-width="12" stroke-linecap="round"/>
+    <path d="M 135 -18 L 150 0 L 135 18" stroke="#3498db" stroke-width="8" 
+          fill="none" stroke-linecap="round"/>
+  </g>
+  <!-- MQ 文字 -->
+  <text x="256" y="300" font-family="Arial, sans-serif" font-size="68" font-weight="bold" 
+        text-anchor="middle" fill="#ffffff">MQ</text>
+  <!-- TOOLKIT 文字 -->
+  <text x="256" y="380" font-family="Arial, sans-serif" font-size="32" font-weight="normal" 
+        text-anchor="middle" fill="#888888" letter-spacing="4px">TOOLKIT</text>
+</svg>

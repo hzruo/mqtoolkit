@@ -26,12 +26,10 @@
 <div class="container mx-auto p-6">
   <div class="card bg-base-100 shadow-xl">
     <div class="card-body">
-      <h2 class="card-title text-2xl mb-6">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        关于 MQ Toolkit
-      </h2>
+      <div class="text-center mb-8">
+        <img src="/src/assets/logo.svg" alt="MQ Toolkit Logo" class="h-24 w-24 mx-auto mb-4 drop-shadow-lg" />
+        <h2 class="text-3xl font-bold text-primary">关于 MQ Toolkit</h2>
+      </div>
       
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <!-- 应用信息 -->

@@ -16,5 +16,7 @@
   "author": {
     "name": "hzruo",
     "email": "hzruo@outlook.com"
-  }
+  },
+  "assetdir": "./frontend/dist",
+  "iconPath": "logo.svg"
 }

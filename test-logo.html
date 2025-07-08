@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MQ Toolkit Logo 测试</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .logo-test {
+            text-align: center;
+            margin: 30px 0;
+            padding: 20px;
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+        }
+        .logo-test h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .logo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        .size-demo {
+            text-align: center;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 MQ Toolkit Logo 测试页面</h1>
+        
+        <div class="logo-test">
+            <h3>主 Logo (SVG)</h3>
+            <img src="logo.svg" alt="MQ Toolkit Logo" style="width: 120px; height: 120px;">
+        </div>
+
+        <div class="logo-grid">
+            <div class="size-demo">
+                <h4>小尺寸 (32px)</h4>
+                <img src="logo.svg" alt="Logo" style="width: 32px; height: 32px;">
+            </div>
+            
+            <div class="size-demo">
+                <h4>中尺寸 (64px)</h4>
+                <img src="logo.svg" alt="Logo" style="width: 64px; height: 64px;">
+            </div>
+            
+            <div class="size-demo">
+                <h4>大尺寸 (128px)</h4>
+                <img src="logo.svg" alt="Logo" style="width: 128px; height: 128px;">
+            </div>
+        </div>
+
+        <div class="logo-test">
+            <h3>应用图标预览</h3>
+            <div style="display: flex; justify-content: center; gap: 20px; align-items: center;">
+                <div style="text-align: center;">
+                    <img src="build/appicon.png" alt="macOS Icon" style="width: 64px; height: 64px; border-radius: 12px;">
+                    <p>macOS</p>
+                </div>
+                <div style="text-align: center;">
+                    <img src="build/linux/icon.png" alt="Linux Icon" style="width: 64px; height: 64px;">
+                    <p>Linux</p>
+                </div>
+                <div style="text-align: center;">
+                    <img src="frontend/public/favicon.png" alt="Favicon" style="width: 32px; height: 32px;">
+                    <p>Favicon</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="logo-test">
+            <h3>✅ 生成状态</h3>
+            <ul style="text-align: left; display: inline-block;">
+                <li>✅ SVG 源文件: logo.svg</li>
+                <li>✅ macOS 图标: build/appicon.png</li>
+                <li>✅ Windows 图标: build/windows/icon.ico</li>
+                <li>✅ Linux 图标: build/linux/icon.png</li>
+                <li>✅ 前端 Logo: frontend/src/assets/logo.svg</li>
+                <li>✅ 网页 Favicon: frontend/public/favicon.png</li>
+            </ul>
+        </div>
+
+        <div style="text-align: center; margin-top: 30px; color: #666;">
+            <p>🚀 运行 <code>wails build</code> 来构建带有新图标的应用</p>
+        </div>
+    </div>
+</body>
+</html>
