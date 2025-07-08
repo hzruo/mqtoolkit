@@ -1,11 +1,18 @@
 {
   "$schema": "https://wails.io/schemas/config.v2.json",
-  "name": "MQToolkit",
-  "outputfilename": "MQToolkit",
+  "name": "MQ Toolkit",
+  "outputfilename": "mq-toolkit",
   "frontend:install": "npm install",
   "frontend:build": "npm run build",
   "frontend:dev:watcher": "npm run dev",
   "frontend:dev:serverUrl": "auto",
+  "info": {
+    "companyName": "MQ Toolkit",
+    "productName": "MQ Toolkit",
+    "productVersion": "1.0.0",
+    "copyright": "Copyright © 2025 MQ Toolkit",
+    "comments": "消息队列测试工具 - 支持 Kafka、RabbitMQ、RocketMQ"
+  },
   "author": {
     "name": "hzruo",
     "email": "hzruo@outlook.com"

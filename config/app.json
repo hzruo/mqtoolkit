@@ -1,0 +1,9 @@
+{
+  "database": {
+    "path": "data/mq-toolkit.db"
+  },
+  "log": {
+    "level": "info",
+    "format": "json"
+  }
+}
