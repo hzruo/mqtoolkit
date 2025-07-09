@@ -26,6 +26,36 @@ func NewApp() *App {
 	return &App{}
 }
 
+// getUserDataDir 获取用户数据目录
+func getUserDataDir() (string, error) {
+	// 获取用户配置目录
+	configDir, err := os.UserConfigDir()
+	if err != nil {
+		// 如果获取失败，使用用户主目录
+		homeDir, err := os.UserHomeDir()
+		if err != nil {
+			return "", fmt.Errorf("failed to get user directories: %w", err)
+		}
+		configDir = homeDir
+	}
+
+	// 创建应用专用目录 - 使用正确的路径分隔符
+	appDataDir := configDir + string(os.PathSeparator) + "MQToolkit"
+	return appDataDir, nil
+}
+
+// joinPath 跨平台路径拼接
+func joinPath(parts ...string) string {
+	if len(parts) == 0 {
+		return ""
+	}
+	result := parts[0]
+	for i := 1; i < len(parts); i++ {
+		result += string(os.PathSeparator) + parts[i]
+	}
+	return result
+}
+
 // startup is called when the app starts. The context is saved
 // so we can call the runtime methods
 func (a *App) startup(ctx context.Context) {
@@ -39,15 +69,31 @@ func (a *App) startup(ctx context.Context) {
 		runtime.EventsEmit(a.ctx, "log:new", entry)
 	})
 
-	cfg, err := config.Load("config/app.json")
+	// 获取用户数据目录
+	userDataDir, err := getUserDataDir()
 	if err != nil {
-		a.logger.Error("App", fmt.Sprintf("Failed to load config: %v", err))
+		a.logger.Error("App", fmt.Sprintf("Failed to get user data directory: %v", err))
+		userDataDir = "."
+	}
+
+	// 尝试从用户数据目录加载配置
+	configPath := joinPath(userDataDir, "config", "app.json")
+	cfg, err := config.Load(configPath)
+	if err != nil {
+		a.logger.Error("App", fmt.Sprintf("Failed to load config from %s: %v", configPath, err))
+		// 使用用户数据目录的默认配置
 		cfg = &config.Config{
 			Database: config.DatabaseConfig{
-				Path: "data/mq-toolkit.db",
+				Path: joinPath(userDataDir, "data", "mq-toolkit.db"),
 			},
 		}
-		a.logger.Info("App", "Using default configuration")
+		a.logger.Info("App", fmt.Sprintf("Using default configuration with data dir: %s", userDataDir))
+	} else {
+		// 如果配置文件存在但数据库路径是相对路径，转换为绝对路径
+		if cfg.Database.Path == "data/mq-toolkit.db" || cfg.Database.Path == joinPath("data", "mq-toolkit.db") {
+			cfg.Database.Path = joinPath(userDataDir, "data", "mq-toolkit.db")
+			a.logger.Info("App", fmt.Sprintf("Updated database path to: %s", cfg.Database.Path))
+		}
 	}
 
 	a.db, err = database.New(cfg.Database.Path)
