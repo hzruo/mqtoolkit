@@ -24,7 +24,6 @@ vendor/
 go.work
 
 # Build output
-build/
 dist/
 bin/
 build/bin/
@@ -33,9 +32,6 @@ mq-toolkit
 # =============================================================================
 # Wails build output
 app.syso
-build/windows/
-build/darwin/
-build/linux/
 wails.json.bak
 
 # Frontend specific (Node.js/Svelte)

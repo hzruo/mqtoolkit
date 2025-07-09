@@ -13,9 +13,10 @@ if ! command -v convert &> /dev/null && ! command -v rsvg-convert &> /dev/null; 
     exit 1
 fi
 
-# 创建临时目录
+# 创建临时目录和构建目录
 TEMP_DIR="temp_icons"
 mkdir -p "$TEMP_DIR"
+mkdir -p "build"
 
 # 源文件
 SOURCE_SVG="logo.svg"
@@ -57,7 +58,11 @@ generate_png 512 "build/appicon.png"
 
 # 生成 Windows ICO 文件
 echo "🪟 生成 Windows ICO 图标..."
-if command -v convert &> /dev/null; then
+mkdir -p "build/windows"
+if command -v magick &> /dev/null; then
+    magick "$TEMP_DIR/icon-16.png" "$TEMP_DIR/icon-32.png" "$TEMP_DIR/icon-48.png" "$TEMP_DIR/icon-256.png" "build/windows/icon.ico"
+    echo "✅ 生成: build/windows/icon.ico"
+elif command -v convert &> /dev/null; then
     convert "$TEMP_DIR/icon-16.png" "$TEMP_DIR/icon-32.png" "$TEMP_DIR/icon-48.png" "$TEMP_DIR/icon-256.png" "build/windows/icon.ico"
     echo "✅ 生成: build/windows/icon.ico"
 else

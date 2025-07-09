@@ -1,0 +1,176 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'  # 触发条件：推送以 v 开头的标签，如 v1.0.0
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        platform:
+          - os: ubuntu-latest
+            target: linux/amd64
+            name: linux-amd64
+          - os: windows-latest
+            target: windows/amd64
+            name: windows-amd64
+          - os: macos-latest
+            target: darwin/amd64
+            name: darwin-amd64
+          - os: macos-latest
+            target: darwin/arm64
+            name: darwin-arm64
+
+    runs-on: ${{ matrix.platform.os }}
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.23'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Wails
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
+
+      - name: Install Linux dependencies
+        if: matrix.platform.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential pkg-config libgtk-3-dev libwebkit2gtk-4.0-dev librsvg2-bin
+
+      - name: Install macOS dependencies
+        if: matrix.platform.os == 'macos-latest'
+        run: |
+          brew install librsvg
+
+      - name: Install frontend dependencies
+        run: |
+          cd frontend
+          npm ci
+
+      - name: Generate icons
+        run: |
+          chmod +x scripts/generate-icons.sh
+          ./scripts/generate-icons.sh
+
+      - name: Build application
+        run: |
+          wails build -platform ${{ matrix.platform.target }}
+
+      - name: Fix macOS app (macOS only)
+        if: matrix.platform.os == 'macos-latest'
+        run: |
+          find build/bin -name "*.app" -exec xattr -cr {} \;
+          find build/bin -name "*.app" -exec codesign --force --deep --sign - {} \;
+
+      - name: Create archive (Linux/Windows)
+        if: matrix.platform.os != 'macos-latest'
+        run: |
+          cd build/bin
+          if [ "${{ matrix.platform.os }}" = "windows-latest" ]; then
+            7z a ../../MQToolkit-${{ matrix.platform.name }}.zip *
+          else
+            tar -czf ../../MQToolkit-${{ matrix.platform.name }}.tar.gz *
+          fi
+
+      - name: Create archive (macOS)
+        if: matrix.platform.os == 'macos-latest'
+        run: |
+          cd build/bin
+          zip -r ../../MQToolkit-${{ matrix.platform.name }}.zip *.app
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: MQToolkit-${{ matrix.platform.name }}
+          path: |
+            MQToolkit-${{ matrix.platform.name }}.*
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v3
+
+      - name: Extract version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: MQ Toolkit ${{ steps.version.outputs.VERSION }}
+          body: |
+            ## MQ Toolkit ${{ steps.version.outputs.VERSION }}
+            
+            ### 📦 下载
+            
+            选择适合您系统的版本：
+            
+            - **Windows**: `MQToolkit-windows-amd64.zip`
+            - **macOS (Intel)**: `MQToolkit-darwin-amd64.zip`
+            - **macOS (Apple Silicon)**: `MQToolkit-darwin-arm64.zip`
+            - **Linux**: `MQToolkit-linux-amd64.tar.gz`
+            
+            ### 🚀 功能特性
+            
+            - 支持 Kafka、RabbitMQ、RocketMQ
+            - 消息生产与消费
+            - 主题/队列管理
+            - 消息模板管理
+            - 操作历史记录
+            - 实时日志查看
+            
+            ### 📝 使用说明
+            
+            1. 下载对应平台的压缩包
+            2. 解压到任意目录
+            3. 运行可执行文件
+            
+            **macOS 用户注意**: 首次运行可能需要在系统偏好设置中允许运行，或右键点击应用选择"打开"。
+            
+            ### 🔗 相关链接
+            
+            - [项目主页](https://github.com/hzruo/MQToolkit)
+            - [使用文档](https://github.com/hzruo/MQToolkit/blob/main/README.md)
+            - [问题反馈](https://github.com/hzruo/MQToolkit/issues)
+          draft: false
+          prerelease: false
+
+      - name: Upload Release Assets
+        run: |
+          for dir in MQToolkit-*; do
+            if [ -d "$dir" ]; then
+              for file in "$dir"/*; do
+                if [ -f "$file" ]; then
+                  echo "Uploading $file"
+                  gh release upload ${{ steps.version.outputs.VERSION }} "$file"
+                fi
+              done
+            fi
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
