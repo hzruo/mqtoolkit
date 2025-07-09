@@ -219,7 +219,9 @@
       <div class="form-control">
         <label for="producer-topic" class="label">
           <span class="label-text">主题 / 队列</span>
-          {#if availableTopics.length > 0}
+          {#if $selectedConnection && $selectedConnection.type === 'rocketmq'}
+            <span class="label-text-alt text-info">RocketMQ: 请直接输入主题名称</span>
+          {:else if availableTopics.length > 0}
             <div class="dropdown dropdown-end" class:dropdown-open={showTopicDropdown}>
               <div tabindex="0" role="button" class="btn btn-xs btn-outline"
                    on:click={() => showTopicDropdown = !showTopicDropdown}

@@ -20,9 +20,7 @@
     password: '',
     vhost: '',
     group_id: '',
-    extra: null,
-    created: '',
-    updated: ''
+    extra: null
   };
 
   let creating = false;
@@ -35,6 +33,12 @@
     kafka: 9092,
     rabbitmq: 5672,
     rocketmq: 9876,
+  };
+
+  const defaultHosts = {
+    kafka: 'localhost',
+    rabbitmq: 'localhost',
+    rocketmq: '127.0.0.1'  // RocketMQ 使用 IP 地址避免解析问题
   };
 
   onMount(loadConnections);
@@ -57,15 +61,13 @@
       id: `new_${Date.now()}`,
       name: '',
       type: 'kafka',
-      host: 'localhost',
+      host: defaultHosts.kafka,
       port: defaultPorts.kafka,
       username: '',
       password: '',
       vhost: '',
       group_id: '',
-      extra: null,
-      created: '',
-      updated: ''
+      extra: null
     };
     showCreateForm = true;
     showEditForm = false;
@@ -91,15 +93,14 @@
       password: '',
       vhost: '',
       group_id: '',
-      extra: null,
-      created: '',
-      updated: ''
+      extra: null
     };
   }
 
   function onTypeChange() {
     if (formConnection && formConnection.type in defaultPorts) {
         formConnection.port = defaultPorts[formConnection.type];
+        formConnection.host = defaultHosts[formConnection.type];
         formConnection = {...formConnection};
     }
   }
@@ -111,7 +112,15 @@
 
     try {
       const connData = {...formConnection};
-      if(isCreating) delete connData.id;
+
+      // 清理不需要的字段
+      if(isCreating) {
+        delete connData.id;
+      }
+
+      // 删除可能存在的时间字段，让后端自动处理
+      if ('created' in connData) delete connData.created;
+      if ('updated' in connData) delete connData.updated;
 
       if (isCreating) {
         // @ts-ignore
@@ -343,8 +352,21 @@
 
       <div class="grid grid-cols-2 gap-4 mt-4">
         <div class="form-control">
-          <label for="conn-host-{formConnection.id}" class="label"><span class="label-text">主机地址</span></label>
-          <input id="conn-host-{formConnection.id}" type="text" bind:value={formConnection.host} class="input input-bordered" />
+          <label for="conn-host-{formConnection.id}" class="label">
+            <span class="label-text">
+              主机地址
+              {#if formConnection.type === 'rocketmq'}
+                <!-- <span class="text-warning">(推荐: 127.0.0.1)</span> -->
+              {/if}
+            </span>
+          </label>
+          <input
+            id="conn-host-{formConnection.id}"
+            type="text"
+            bind:value={formConnection.host}
+            class="input input-bordered"
+            placeholder={formConnection.type === 'rocketmq' ? '127.0.0.1' : 'localhost'}
+          />
         </div>
         <div class="form-control">
           <label for="conn-port-{formConnection.id}" class="label"><span class="label-text">端口</span></label>

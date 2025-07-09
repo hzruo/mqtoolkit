@@ -2,6 +2,7 @@
   import { createEventDispatcher, onMount } from 'svelte';
   import { selectedConnection } from '../store.js';
   import { ListTopics, CreateTopic, DeleteTopic } from '../../wailsjs/go/main/App.js';
+  import { BrowserOpenURL } from '../../wailsjs/runtime/runtime.js';
 
   export let isOnline;
   const dispatch = createEventDispatcher();
@@ -124,6 +125,11 @@
     showDeleteConfirm = false;
   }
 
+  function openDashboard() {
+    // 打开RocketMQ Dashboard
+    BrowserOpenURL('http://localhost:8080');
+  }
+
   async function confirmDelete() {
     if (!topicToDelete || !$selectedConnection) {
       dispatch('notification', { message: '没有选中的连接或主题', type: 'error' });
@@ -190,9 +196,26 @@
           </div>
         {:else if topics.length === 0}
           <div class="text-center py-12">
-            <div class="text-6xl mb-4">📂</div>
-            <h3 class="text-lg font-semibold mb-2">暂无主题</h3>
-            <p class="text-base-content/60">此连接下没有找到任何主题，您可以新建一个。</p>
+            {#if $selectedConnection && $selectedConnection.type === 'rocketmq'}
+              <div class="text-6xl mb-4">🚀</div>
+              <h3 class="text-lg font-semibold mb-2">RocketMQ 主题列表</h3>
+              <p class="text-base-content/60 mb-4">RocketMQ v2 admin API 暂不支持列出所有主题</p>
+              <div class="alert alert-info">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <div>
+                  <div class="font-semibold">替代方案：</div>
+                  <ul class="list-disc list-inside mt-2 text-sm">
+                    <li>使用 <button class="link link-primary" on:click={() => openDashboard()}>RocketMQ Dashboard</button> 查看主题 (默认: localhost:8080)</li>
+                    <li>在消息发送页面直接输入主题名称</li>
+                    <li>创建新主题后可在 Dashboard 中查看</li>
+                  </ul>
+                </div>
+              </div>
+            {:else}
+              <div class="text-6xl mb-4">📂</div>
+              <h3 class="text-lg font-semibold mb-2">暂无主题</h3>
+              <p class="text-base-content/60">此连接下没有找到任何主题，您可以新建一个。</p>
+            {/if}
           </div>
         {:else}
           <div class="overflow-x-auto">

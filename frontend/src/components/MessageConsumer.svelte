@@ -440,7 +440,7 @@
         </div>
       {:else}
         <div class="space-y-4 max-h-96 overflow-y-auto">
-          {#each filteredMessages as message, index (message.id)}
+          {#each filteredMessages as message, index (message.id || `msg-${index}-${message.timestamp || Date.now()}`)}
             <div class="card bg-base-200 compact">
               <div class="card-body p-4">
                 <div class="flex justify-between items-start mb-2">
