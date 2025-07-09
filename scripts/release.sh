@@ -115,8 +115,27 @@ esac
 
 # 检查标签是否已存在
 if git tag -l | grep -q "^$NEW_VERSION$"; then
-    print_error "标签 $NEW_VERSION 已存在"
-    exit 1
+    print_warning "标签 $NEW_VERSION 已存在"
+    echo ""
+    read -p "是否删除现有标签并重新创建？(y/N): " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        print_info "删除现有标签 $NEW_VERSION"
+
+        # 删除本地标签
+        git tag -d "$NEW_VERSION" 2>/dev/null || true
+        print_success "已删除本地标签"
+
+        # 删除远程标签
+        if git push origin --delete "$NEW_VERSION" 2>/dev/null; then
+            print_success "已删除远程标签"
+        else
+            print_warning "远程标签删除失败或不存在"
+        fi
+    else
+        print_info "已取消发布"
+        exit 0
+    fi
 fi
 
 # 确认发布
