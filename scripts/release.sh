@@ -123,10 +123,9 @@ fi
 echo ""
 print_info "准备发布版本: $NEW_VERSION"
 print_warning "这将会:"
-echo "  1. 更新 wails.json 中的版本号"
-echo "  2. 创建 Git 标签: $NEW_VERSION"
-echo "  3. 推送标签到远程仓库"
-echo "  4. 触发 GitHub Actions 自动构建和发布"
+echo "  1. 创建 Git 标签: $NEW_VERSION"
+echo "  2. 推送标签到远程仓库"
+echo "  3. 触发 GitHub Actions 自动构建和发布"
 
 echo ""
 read -p "确认发布？(y/N): " -n 1 -r
@@ -137,36 +136,16 @@ if [[ ! $REPLY =~ ^[Yy]$ ]]; then
     exit 0
 fi
 
-# 更新 wails.json 中的版本号
-VERSION_NUMBER=${NEW_VERSION#v}  # 移除 v 前缀
-print_info "更新 wails.json 版本号为 $VERSION_NUMBER"
-
-if [ -f "wails.json" ]; then
-    # 使用 sed 更新版本号
-    if [[ "$OSTYPE" == "darwin"* ]]; then
-        # macOS
-        sed -i '' "s/\"productVersion\": \"[^\"]*\"/\"productVersion\": \"$VERSION_NUMBER\"/" wails.json
-    else
-        # Linux
-        sed -i "s/\"productVersion\": \"[^\"]*\"/\"productVersion\": \"$VERSION_NUMBER\"/" wails.json
-    fi
-    
-    # 提交版本更新
-    git add wails.json
-    git commit -m "chore: bump version to $NEW_VERSION"
-    print_success "已更新并提交版本号"
-else
-    print_warning "wails.json 文件不存在，跳过版本号更新"
-fi
+# 跳过本地版本号更新，由 GitHub Actions 在构建时处理
+print_info "版本号将在 GitHub Actions 构建时自动更新"
 
 # 创建标签
 print_info "创建标签 $NEW_VERSION"
 git tag -a "$NEW_VERSION" -m "Release $NEW_VERSION"
 print_success "已创建标签 $NEW_VERSION"
 
-# 推送到远程仓库
-print_info "推送到远程仓库"
-git push origin "$CURRENT_BRANCH"
+# 推送标签到远程仓库
+print_info "推送标签到远程仓库"
 git push origin "$NEW_VERSION"
 print_success "已推送标签到远程仓库"
 
