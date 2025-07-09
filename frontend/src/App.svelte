@@ -1,6 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import { selectedConnection, testResults } from './store.js';
+  import logoSvg from './assets/logo.svg';
   import ConnectionManager from './components/ConnectionManager.svelte';
   import MessageProducer from './components/MessageProducer.svelte';
   import MessageConsumer from './components/MessageConsumer.svelte';
@@ -102,7 +103,7 @@
   <aside class="w-60 bg-base-100 text-base-content flex-shrink-0 flex flex-col">
     <div class="flex items-center justify-center h-16 bg-base-300 shadow-md">
       <div class="mr-3">
-        <img src="/src/assets/logo.svg" alt="MQ Toolkit Logo" class="w-10 h-10 drop-shadow-sm" />
+        <img src={logoSvg} alt="MQ Toolkit Logo" class="w-10 h-10 drop-shadow-sm" />
       </div>
       <h1 class="text-xl font-bold">MQ Toolkit</h1>
     </div>

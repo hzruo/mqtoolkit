@@ -1,6 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import { BrowserOpenURL } from '../../wailsjs/runtime';
+  import logoSvg from '../assets/logo.svg';
 
   let appVersion = '1.0.0';
   let buildTime = '';
@@ -27,7 +28,7 @@
   <div class="card bg-base-100 shadow-xl">
     <div class="card-body">
       <div class="text-center mb-8">
-        <img src="/src/assets/logo.svg" alt="MQ Toolkit Logo" class="h-24 w-24 mx-auto mb-4 drop-shadow-lg" />
+        <img src={logoSvg} alt="MQ Toolkit Logo" class="h-24 w-24 mx-auto mb-4 drop-shadow-lg" />
         <h2 class="text-3xl font-bold text-primary">关于 MQ Toolkit</h2>
       </div>
       
