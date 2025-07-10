@@ -63,5 +63,3 @@ require (
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
 	stathat.com/c/consistent v1.0.0 // indirect
 )
-
-// replace github.com/wailsapp/wails/v2 v2.5.0 => /Users/zhenrong/go/pkg/mod
