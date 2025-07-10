@@ -74,6 +74,7 @@ jobs:
 
       - name: Extract version from tag
         id: version
+        shell: bash
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             VERSION="${{ github.event.inputs.version }}"
@@ -120,22 +121,28 @@ jobs:
 
       - name: Fix macOS app (macOS only)
         if: contains(matrix.platform.os, 'macos')
+        shell: bash
         run: |
           find build/bin -name "*.app" -exec xattr -cr {} \;
           find build/bin -name "*.app" -exec codesign --force --deep --sign - {} \;
 
-      - name: Create archive (Linux/Windows)
-        if: "!contains(matrix.platform.os, 'macos')"
+      - name: Create archive (Windows)
+        if: matrix.platform.os == 'windows-latest'
+        shell: pwsh
         run: |
           cd build/bin
-          if [ "${{ matrix.platform.os }}" = "windows-latest" ]; then
-            powershell Compress-Archive -Path * -DestinationPath ../../MQToolkit-${{ matrix.platform.name }}.zip
-          else
-            tar -czf ../../MQToolkit-${{ matrix.platform.name }}.tar.gz *
-          fi
+          Compress-Archive -Path * -DestinationPath ../../MQToolkit-${{ matrix.platform.name }}.zip
+
+      - name: Create archive (Linux)
+        if: matrix.platform.os == 'ubuntu-22.04'
+        shell: bash
+        run: |
+          cd build/bin
+          tar -czf ../../MQToolkit-${{ matrix.platform.name }}.tar.gz *
 
       - name: Create archive (macOS)
         if: contains(matrix.platform.os, 'macos')
+        shell: bash
         run: |
           cd build/bin
           zip -r ../../MQToolkit-${{ matrix.platform.name }}.zip *.app
@@ -170,6 +177,7 @@ jobs:
 
       - name: Extract version from tag
         id: version
+        shell: bash
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             VERSION="${{ github.event.inputs.version }}"
