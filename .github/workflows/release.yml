@@ -74,23 +74,48 @@ jobs:
 
       - name: Extract version from tag
         id: version
-        shell: bash
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            VERSION="${{ github.event.inputs.version }}"
-            VERSION=${VERSION#v}  # 移除 v 前缀
-          else
-            VERSION=${GITHUB_REF#refs/tags/v}
-          fi
-          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          if ("${{ github.event_name }}" -eq "workflow_dispatch") {
+            $VERSION = "${{ github.event.inputs.version }}"
+            $VERSION = $VERSION -replace "^v", ""
+          } else {
+            $VERSION = "${{ github.ref }}" -replace "refs/tags/v", ""
+          }
+          echo "VERSION=$VERSION" >> $env:GITHUB_OUTPUT
           echo "Extracted version: $VERSION"
+        shell: pwsh
 
-      - name: Update wails.json version
+      - name: Update wails.json version (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $VERSION = "${{ steps.version.outputs.VERSION }}"
+          Write-Host "Updating wails.json version to $VERSION"
+
+          $content = Get-Content wails.json -Raw
+          $currentVersion = ($content | Select-String '"productVersion": "([^"]*)"').Matches[0].Groups[1].Value
+          Write-Host "Current version in wails.json: $currentVersion"
+
+          if ($currentVersion -ne $VERSION) {
+            Write-Host "Updating version from $currentVersion to $VERSION"
+            $content = $content -replace '"productVersion": "[^"]*"', "`"productVersion`": `"$VERSION`""
+            $content | Set-Content wails.json -NoNewline
+            Write-Host "Version updated successfully"
+          } else {
+            Write-Host "Version already matches, no update needed"
+          }
+
+          $newContent = Get-Content wails.json -Raw
+          $newVersion = ($newContent | Select-String '"productVersion": "([^"]*)"').Matches[0].Groups[1].Value
+          Write-Host "Final version in wails.json: $newVersion"
+
+      - name: Update wails.json version (Unix)
+        if: runner.os != 'Windows'
+        shell: bash
         run: |
           VERSION="${{ steps.version.outputs.VERSION }}"
           echo "Updating wails.json version to $VERSION"
 
-          # 获取当前版本号
           CURRENT_VERSION=$(grep -o '"productVersion": "[^"]*"' wails.json | cut -d'"' -f4)
           echo "Current version in wails.json: $CURRENT_VERSION"
 
@@ -106,7 +131,6 @@ jobs:
             echo "Version already matches, no update needed"
           fi
 
-          # 验证更新
           NEW_VERSION=$(grep -o '"productVersion": "[^"]*"' wails.json | cut -d'"' -f4)
           echo "Final version in wails.json: $NEW_VERSION"
 
